@@ -6,9 +6,11 @@ import { PrismaService } from './prisma/prisma.service';
 import { BcryptService } from './bcrypt/bcrypt.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
+import { PassengerModule } from './passenger/passenger.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
-  imports: [UserModule, PrismaModule, AuthModule],
+  imports: [UserModule, PrismaModule, AuthModule, PassengerModule, AdminModule],
   controllers: [AppController],
   providers: [AppService, PrismaService, BcryptService],
 })

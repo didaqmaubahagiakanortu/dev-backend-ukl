@@ -1,0 +1,184 @@
+import { Injectable } from '@nestjs/common';
+import { CreatePassengerDto } from './dto/create-passenger.dto';
+import { UpdatePassengerDto } from './dto/update-passenger.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { BcryptService } from '../bcrypt/bcrypt.service';
+
+@Injectable()
+export class PassengerService {
+  constructor(
+    private prisma: PrismaService,
+    private readonly bcrypt: BcryptService
+  ) { }
+
+  async create(createPassengerDto: CreatePassengerDto) {
+    try {
+      const { name, phone, email, password } = createPassengerDto
+
+      const checkEmail = await this.prisma.user.findFirst({
+        where: {
+          email
+        }
+      })
+
+      if (checkEmail) return {
+        status: 'failed',
+        message: `User with the email ${email} already exists`,
+        data: null
+      }
+
+      const register = await this.prisma.passenger.create({
+        data: {
+          name,
+          phone,
+          user: {
+            create: {
+              email,
+              password: await this.bcrypt.hashPassword(password),
+              role: 'USER'
+            }
+          }
+        }, include: {
+          user: true
+        }
+      })
+
+      return {
+        status: 'success',
+        message: 'Passenger successfully registered',
+        data: register
+      }
+
+    } catch (error) {
+      return {
+        status: 'failed',
+        message: `Error when registering passenger: ${error}`,
+        data: null
+      }
+    }
+
+  }
+
+  async findAll() {
+    try {
+      const getAllPassengers = await this.prisma.passenger.findMany({
+        include: { user: true }
+      })
+
+      return {
+        status: 'success',
+        message: 'Passengers succesfully returned',
+        data: getAllPassengers
+      }
+    } catch (error) {
+      return {
+        status: 'failed',
+        message: `Error when returning passengers: ${error}`,
+        data: null
+      }
+    }
+
+  }
+
+  async findOne(id: number) {
+    try {
+      const findPassengerByID = await this.prisma.passenger.findFirst({
+        where: {
+          id
+        }, include: { user: true }
+      })
+
+      if (!findPassengerByID) return {
+        status: 'failed',
+        message: `Passenger with the ID ${id} is not found`,
+        data: null
+      }
+
+      return {
+        status: 'success',
+        message: `Passenger with the ID ${id} successfully returned`,
+        data: findPassengerByID
+      }
+    } catch (error) {
+      return {
+        status: 'failed',
+        message: `Error when returning passenger with the ID ${id}: ${error}`,
+        data: null
+      }
+    }
+
+  }
+
+  async update(id: number, updatePassengerDto: UpdatePassengerDto) {
+    try {
+      const { name, phone, password } = updatePassengerDto
+
+      const passenger = await this.prisma.passenger.findFirst({ where: { id } })
+      if (!passenger) return {
+        status: 'failed',
+        message: `Passenger with the ID ${id} is not found`,
+        data: null
+      }
+
+      const user = await this.prisma.user.findFirst({ where: { id: passenger.userId } })
+
+      const updatePassenger = await this.prisma.passenger.update({
+        where: { id }, data: {
+          name: name ?? passenger?.name,
+          phone: phone ?? passenger?.phone,
+          user: {
+            update: {
+              password: password ? await this.bcrypt.hashPassword(password) : user?.password
+            }
+          }
+        }, include: { user: true }
+      })
+
+      return {
+        status: 'success',
+        message: `Passenger with the ID ${id} successfully updated`,
+        data: updatePassenger
+      }
+    } catch (error) {
+      return {
+        status: 'failed',
+        message: `Error when updating passenger with the ID ${id}: ${error}`,
+        data: null
+      }
+    }
+  }
+
+  async remove(id: number) {
+    try {
+      const passenger = await this.prisma.passenger.findFirst({ where: { id } })
+
+      if (!passenger) return {
+        status: 'failed',
+        message: `Passenger with the ID ${id} is not found`,
+        data: null
+      }
+
+      const deletePassenger = await this.prisma.passenger.delete({
+        where: { id },
+        include: { user: true }
+      })
+
+      const deleteUser = await this.prisma.user.delete({
+        where: {id: passenger.userId}
+      })
+
+      return {
+        status: 'success',
+        message: 'Passenger successfully deleted',
+        data: deletePassenger
+      }
+    } catch (error) {
+      return {
+        status: 'failed',
+        message: `Error when deleting passenger: ${error}`,
+        data: null
+      }
+    }
+
+  }
+}

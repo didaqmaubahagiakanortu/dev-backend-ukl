@@ -14,16 +14,16 @@ export class AuthService {
 
     async signIn(signInDto: SignInDto) {
         try {
-            const { username, password } = signInDto
+            const { email, password } = signInDto
             const user = await this.prisma.user.findFirst({
                 where: {
-                    username: username
+                    email
                 }
             })
 
             if (!user) return {
                 status: 'failed',
-                message: 'Invalid username or password',
+                message: 'Invalid email or password',
                 data: null
             }
 
@@ -31,11 +31,11 @@ export class AuthService {
 
             if (!matchPassword) return {
                 status: 'failed',
-                message: 'Invalid username or password',
+                message: 'Invalid email or password',
                 data: null
             }
 
-            const token = await this.jwt.signAsync({id: user.id, name: user.username, role: user.role})
+            const token = await this.jwt.signAsync({id: user.id, email: user.email, role: user.role})
 
             return {
                 status: 'success',

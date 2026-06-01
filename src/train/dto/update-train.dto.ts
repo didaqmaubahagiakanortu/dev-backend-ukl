@@ -5,9 +5,9 @@ import { IsNumber, IsOptional, IsString } from 'class-validator';
 export class UpdateTrainDto extends PartialType(CreateTrainDto) {
         @IsOptional()
         @IsString()
-        name?: string
+        name?: string | undefined
     
         @IsOptional()
         @IsNumber()
-        carriageId?: number
+        carriageId?: number | undefined
 }

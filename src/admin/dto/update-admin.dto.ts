@@ -5,13 +5,13 @@ import { IsString, IsOptional, IsEmail } from 'class-validator';
 export class UpdateAdminDto extends PartialType(CreateAdminDto) {
             @IsString()
             @IsOptional()
-            name?: string
+            name?: string | undefined
         
             @IsString()
             @IsOptional()
-            phone?: string
+            phone?: string | undefined
         
             @IsString()
             @IsOptional()
-            password?: string
+            password?: string | undefined
 }

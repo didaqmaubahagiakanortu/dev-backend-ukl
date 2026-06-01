@@ -5,13 +5,13 @@ import { IsEmail, IsOptional, IsString } from 'class-validator';
 export class UpdatePassengerDto extends PartialType(CreatePassengerDto) {
         @IsString()
         @IsOptional()
-        name?: string
+        name?: string | undefined
     
         @IsString()
         @IsOptional()
-        phone?: string
+        phone?: string | undefined
     
         @IsString()
         @IsOptional()
-        password?: string
+        password?: string | undefined
 }

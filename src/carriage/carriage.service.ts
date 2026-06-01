@@ -11,13 +11,12 @@ export class CarriageService {
 
   async create(createCarriageDto: CreateCarriageDto) {
     try {
-      const { code, classification, price, capacity } = createCarriageDto
+      const { code, classification, capacity } = createCarriageDto
 
       const createCarriage = await this.prisma.carriage.create({
         data: {
           code: code,
           class: classification,
-          price: price,
           capacity: capacity
         }, include: { train: true }
       })
@@ -84,7 +83,7 @@ export class CarriageService {
 
   async update(id: number, updateCarriageDto: UpdateCarriageDto) {
     try {
-      const { code, classification, price, capacity } = updateCarriageDto
+      const { code, classification, capacity } = updateCarriageDto
 
       const carriage = await this.prisma.carriage.findFirst({
         where: { id }
@@ -100,7 +99,6 @@ export class CarriageService {
         data: {
           code: code ?? carriage.code,
           class: classification ?? carriage.class,
-          price: price ?? carriage.price,
           capacity: capacity ?? carriage.capacity
         },
         include: { train: true }

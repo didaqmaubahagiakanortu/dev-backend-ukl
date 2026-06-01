@@ -12,9 +12,5 @@ export class CreateCarriageDto {
 
     @IsNotEmpty()
     @IsNumber()
-    price!: number
-
-    @IsNotEmpty()
-    @IsNumber()
     capacity!: number
 }

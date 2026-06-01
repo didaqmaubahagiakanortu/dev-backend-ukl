@@ -14,9 +14,5 @@ export class UpdateCarriageDto extends PartialType(CreateCarriageDto) {
     
         @IsOptional()
         @IsNumber()
-        price?: number | undefined
-    
-        @IsOptional()
-        @IsNumber()
         capacity?: number | undefined
 }

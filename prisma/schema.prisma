@@ -44,7 +44,33 @@ model Passenger {
   userId    Int?     @unique
 }
 
+model Train {
+  id        Int        @id @default(autoincrement())
+  name      String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  carriages Carriage[]
+}
+
+model Carriage {
+  id        Int      @id @default(autoincrement())
+  code      String
+  class     Class
+  price     Int
+  capacity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  train     Train?   @relation(fields: [trainId], references: [id])
+  trainId   Int?
+}
+
 enum Role {
   USER
   ADMIN
+}
+
+enum Class {
+  EKONOMI
+  BISNIS
+  EKSEKUTIF
 }

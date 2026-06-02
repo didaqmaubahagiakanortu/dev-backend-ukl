@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UsePipes, ValidationPipe, UseGuards, Req } from '@nestjs/common';
 import { PassengerService } from './passenger.service';
 import { CreatePassengerDto } from './dto/create-passenger.dto';
 import { UpdatePassengerDto } from './dto/update-passenger.dto';
@@ -20,6 +20,14 @@ export class PassengerController {
   @Get()
   findAll() {
     return this.passengerService.findAll();
+  }
+
+  @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @Roles('USER')
+  @Get('me')
+  findMe(@Req() req: Express.Request) {
+    const userPayload = req.user
+    return this.passengerService.findMe(userPayload)
   }
 
   @Get(':id')

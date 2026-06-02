@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe, Req } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
@@ -23,10 +23,12 @@ export class TransactionController {
     return this.transactionService.findAll();
   }
 
-  // @Get('me')
-  // findMe(@Body() token: string) {
-  //   return this.transactionService.findMe(token)
-  // }
+  @UseGuards(AuthGuard('jwt'))
+  @Get('me')
+  findMe(@Req() req: Express.Request) {
+    const userPayload = req.user
+    return this.transactionService.findMe(userPayload)
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {

@@ -84,20 +84,32 @@ export class TransactionService {
     }
   }
 
-  // async findMe(token: string) {
-  //   try {
-  //     const decoded = await jwtDecode(token, {header: true})
+  async findMe(user: any) {
+    try {
+      const passenger = await this.prisma.passenger.findFirst({
+        where: {userId: user.id}
+      })
+      const transaction = await this.prisma.transaction.findMany({
+        where: {passengerId: passenger?.id},
+        include: {
+          passenger: true,
+          ticket: true
+        }
+      })
 
-  //     return decoded
-
-  //   } catch (error) {
-  //     return {
-  //       status: 'failed',
-  //       message: `Error when returning transaction: ${error}`,
-  //       data: null
-  //     }
-  //   }
-  // }
+      return {
+        status: 'success',
+        message: `Transaction by the user with the ID ${user.id} successfully returned`,
+        data: transaction
+      }
+    } catch (error) {
+      return {
+        status: 'failed',
+        message: `Error when returning transaction: ${error}`,
+        data: null
+      }
+    }
+  }
 
   async findOne(id: number) {
     try {

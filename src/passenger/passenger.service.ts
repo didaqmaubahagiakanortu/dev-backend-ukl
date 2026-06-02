@@ -106,7 +106,30 @@ export class PassengerService {
         data: null
       }
     }
+  }
 
+  async findMe(user: any) {
+    try {
+      const passenger = await this.prisma.passenger.findFirst({
+        where: { userId: user.id },
+        include: {
+          user: true,
+          transactions: true
+        }
+      })
+
+      return {
+        status: 'success',
+        message: `Passenger with the ID ${passenger?.id} successfully returned`,
+        data: passenger
+      }
+    } catch (error) {
+      return {
+        status: 'failed',
+        message: `Error when returning passenger: ${error}`,
+        data: null
+      }
+    }
   }
 
   async update(id: number, updatePassengerDto: UpdatePassengerDto) {
@@ -164,7 +187,7 @@ export class PassengerService {
       })
 
       const deleteUser = await this.prisma.user.delete({
-        where: {id: passenger.userId}
+        where: { id: passenger.userId }
       })
 
       return {

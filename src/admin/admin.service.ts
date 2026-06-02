@@ -108,6 +108,27 @@ export class AdminService {
     }
   }
 
+  async findMe(user: any) {
+    try {
+      const admin = await this.prisma.admin.findFirst({
+        where: { userId: user.id },
+        include: { user: true }
+      })
+
+      return {
+        status: 'success',
+        message: `Admin with the ID ${admin?.id} successfully returned`,
+        data: admin
+      }
+    } catch (error) {
+      return {
+        status: 'failed',
+        message: `Error when returning admin: ${error}`,
+        data: null
+      }
+    }
+  }
+
   async update(id: number, updateAdminDto: UpdateAdminDto) {
     try {
       const { name, phone, password } = updateAdminDto
@@ -163,7 +184,7 @@ export class AdminService {
       })
 
       const deleteUser = await this.prisma.user.delete({
-        where: {id: admin.userId}
+        where: { id: admin.userId }
       })
 
       return {

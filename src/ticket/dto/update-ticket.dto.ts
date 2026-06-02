@@ -25,9 +25,5 @@ export class UpdateTicketDto extends PartialType(CreateTicketDto) {
 
     @IsOptional()
     @IsNumber()
-    trainId?: number | undefined
-
-    @IsOptional()
-    @IsNumber()
     carriageId?: number | undefined
 }

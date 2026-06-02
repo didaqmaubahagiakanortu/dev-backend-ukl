@@ -23,9 +23,5 @@ export class CreateTicketDto {
 
     @IsNotEmpty()
     @IsNumber()
-    trainId!: number
-
-    @IsNotEmpty()
-    @IsNumber()
     carriageId!: number
 }

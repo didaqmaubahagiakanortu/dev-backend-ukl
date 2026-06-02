@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsEnum, IsNotEmpty, IsNumber, IsString } from "class-validator";
 import { Class } from "@prisma/client";
 
 export class CreateCarriageDto {
@@ -10,7 +10,8 @@ export class CreateCarriageDto {
     @IsEnum(Class)
     classification!: Class
 
-    @IsNotEmpty()
-    @IsNumber()
-    capacity!: number
+    @ArrayNotEmpty()
+    @IsArray()
+    @IsString({each: true})
+    seats!: string[]
 }

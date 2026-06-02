@@ -87,10 +87,10 @@ export class TransactionService {
   async findMe(user: any) {
     try {
       const passenger = await this.prisma.passenger.findFirst({
-        where: {userId: user.id}
+        where: { userId: user.id }
       })
       const transaction = await this.prisma.transaction.findMany({
-        where: {passengerId: passenger?.id},
+        where: { passengerId: passenger?.id },
         include: {
           passenger: true,
           ticket: true
@@ -239,12 +239,14 @@ export class TransactionService {
 
   async pay(id: number, payTransactionDto: PayTransactionDto) {
     try {
-      const { method } = payTransactionDto
+      const { method, seatIds } = payTransactionDto
+
       const transaction = await this.prisma.transaction.findFirst({
         where: { id },
         include: {
           passenger: true,
-          ticket: true
+          ticket: true,
+          seat: true
         }
       })
       if (!transaction) return {
@@ -271,7 +273,7 @@ export class TransactionService {
       }
 
       const carriage = await this.prisma.carriage.findFirst({
-        where: {id: Number(transaction.ticket?.carriageId)}
+        where: { id: Number(transaction.ticket?.carriageId) }
       })
       if (!carriage) return {
         status: 'failed',
@@ -279,28 +281,54 @@ export class TransactionService {
         data: null
       }
 
-      if (carriage?.capacity == 0) return {
+      if (seatIds.length !== transaction.ticketAmount) return {
         status: 'failed',
-        message: `Carriage with the ID ${id} is full`,
+        message: `${transaction.ticketAmount - seatIds.length} more seat is required to be filled`,
         data: null
       }
 
-      const newCapacityValue = Number(carriage?.capacity) - transaction.ticketAmount
+      seatIds.forEach(async seatId => {
+        const seatCheck = await this.prisma.seat.findFirst({
+          where: {
+            id: seatId,
+            carriageId: transaction.ticket?.carriageId
+          }
+        })
+        if (!seatCheck) return {
+          status: 'failed',
+          message: `Seat with the ID ${id} is not found or not part of this carriage`,
+          data: null
+        }
+        if (seatCheck.taken) return {
+          status: 'failed',
+          message: `Seat with the ID ${id} is taken`,
+          data: null
+        }
 
-      await this.prisma.carriage.update({
-        where: {id: carriage?.id},
-        data: {capacity: newCapacityValue}
+        await this.prisma.seat.update({
+          where: { id: seatId },
+          data: { taken: true }
+        })
       })
+
+      const seatsTransformed = seatIds.map(seatId => (
+        { id: seatId }
+      ))
 
       const payTansaction = await this.prisma.transaction.update({
         where: { id },
         data: {
           method,
-          status: "PAID"
+          status: "PAID",
+          seat: {
+            connect: seatsTransformed
+          }
+
         },
         include: {
           passenger: true,
-          ticket: true
+          ticket: true,
+          seat: true
         }
       })
 

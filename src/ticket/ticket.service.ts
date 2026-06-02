@@ -9,23 +9,23 @@ export class TicketService {
 
   async create(createTicketDto: CreateTicketDto) {
     try {
-      const { origin, destination, departure, arrival, price, trainId, carriageId } = createTicketDto
-
-      const train = await this.prisma.train.findFirst({
-        where: {id: trainId}
-      })
-      if (!train) return {
-        status: 'failed',
-        message: `Train with the ID ${trainId} is not found`,
-        data: null
-      }
+      const { origin, destination, departure, arrival, price, carriageId } = createTicketDto
 
       const carriage = await this.prisma.carriage.findFirst({
-        where: {id: carriageId}
+        where: { id: carriageId }
       })
       if (!carriage) return {
         status: 'failed',
         message: `Carriage with the ID ${carriageId} is not found`,
+        data: null
+      }
+
+      const train = await this.prisma.train.findFirst({
+        where: { id: Number(carriage.trainId) }
+      })
+      if (!train) return {
+        status: 'failed',
+        message: `Carriage with the ID ${carriageId} is not connected to any trains`,
         data: null
       }
 
@@ -37,7 +37,7 @@ export class TicketService {
           arrival,
           price,
           train: {
-            connect: { id: trainId }
+            connect: { id: Number(carriage.trainId) }
           },
           carriage: {
             connect: { id: carriageId }
@@ -120,7 +120,7 @@ export class TicketService {
 
   async update(id: number, updateTicketDto: UpdateTicketDto) {
     try {
-      const { origin, destination, departure, arrival, price, trainId, carriageId } = updateTicketDto
+      const { origin, destination, departure, arrival, price, carriageId } = updateTicketDto
 
       const ticket = await this.prisma.ticket.findFirst({
         where: { id }
@@ -131,21 +131,21 @@ export class TicketService {
         data: null
       }
 
-            const train = await this.prisma.train.findFirst({
-        where: {id: trainId}
-      })
-      if (!train) return {
-        status: 'failed',
-        message: `Train with the ID ${trainId} is not found`,
-        data: null
-      }
-
       const carriage = await this.prisma.carriage.findFirst({
-        where: {id: carriageId}
+        where: { id: carriageId }
       })
       if (!carriage) return {
         status: 'failed',
         message: `Carriage with the ID ${carriageId} is not found`,
+        data: null
+      }
+
+      const train = await this.prisma.train.findFirst({
+        where: { id: Number(carriage.trainId) }
+      })
+      if (!train) return {
+        status: 'failed',
+        message: `Carriage with the ID ${carriageId} is not connected to any trains`,
         data: null
       }
 
@@ -157,8 +157,8 @@ export class TicketService {
           departure: departure ?? ticket.departure,
           arrival: arrival ?? ticket.arrival,
           price: price ?? ticket.price,
-          train: trainId ?
-            { connect: { id: trainId } } : {},
+          train: carriageId ?
+            { connect: { id: Number(carriage.trainId) } } : {},
           carriage: carriageId ?
             { connect: { id: carriageId } } : {}
         },
@@ -186,7 +186,7 @@ export class TicketService {
   async remove(id: number) {
     try {
       const ticket = await this.prisma.ticket.findFirst({
-        where: {id}
+        where: { id }
       })
       if (!ticket) return {
         status: 'failed',
@@ -195,7 +195,7 @@ export class TicketService {
       }
 
       const deleteTicket = await this.prisma.ticket.delete({
-        where: {id},
+        where: { id },
         include: {
           train: true,
           carriage: true,

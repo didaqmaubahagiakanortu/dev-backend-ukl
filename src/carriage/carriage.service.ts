@@ -11,14 +11,23 @@ export class CarriageService {
 
   async create(createCarriageDto: CreateCarriageDto) {
     try {
-      const { code, classification, capacity } = createCarriageDto
+      const { code, classification, seats } = createCarriageDto
+
+      const seatsTransformed = seats.map(seat => ({ code: seat }))
+
+      console.log(createCarriageDto);
 
       const createCarriage = await this.prisma.carriage.create({
         data: {
           code: code,
           class: classification,
-          capacity: capacity
-        }, include: { train: true }
+          seats: {
+            createMany: { data: seatsTransformed }
+          }
+        }, include: {
+          train: true,
+          seats: true
+        }
       })
 
       return {
@@ -38,7 +47,10 @@ export class CarriageService {
   async findAll() {
     try {
       const getAllCarriages = await this.prisma.carriage.findMany({
-        include: { train: true }
+        include: {
+          train: true,
+          seats: true
+        }
       })
 
       return {
@@ -58,7 +70,11 @@ export class CarriageService {
   async findOne(id: number) {
     try {
       const getCarriageByID = await this.prisma.carriage.findFirst({
-        where: { id }
+        where: { id },
+        include: {
+          train: true,
+          seats: true
+        }
       })
       if (!getCarriageByID) return {
         status: 'failed',
@@ -83,10 +99,14 @@ export class CarriageService {
 
   async update(id: number, updateCarriageDto: UpdateCarriageDto) {
     try {
-      const { code, classification, capacity } = updateCarriageDto
+      const { code, classification, seats } = updateCarriageDto
 
       const carriage = await this.prisma.carriage.findFirst({
-        where: { id }
+        where: { id },
+        include: {
+          train: true,
+          seats: true
+        }
       })
       if (!carriage) return {
         status: 'failed',
@@ -94,14 +114,22 @@ export class CarriageService {
         data: null
       }
 
+      const seatsTransformed = seats?.map(seat => (
+        { code: seat }
+      ))
+
       const updateCarriage = await this.prisma.carriage.update({
         where: { id },
         data: {
           code: code ?? carriage.code,
           class: classification ?? carriage.class,
-          capacity: capacity ?? carriage.capacity
+          seats: seats ?
+            { createMany: { data: seatsTransformed } } as any : {}
         },
-        include: { train: true }
+        include: {
+          train: true,
+          seats: true
+        }
       })
 
       return {
@@ -131,7 +159,7 @@ export class CarriageService {
 
       const deleteCarriage = await this.prisma.carriage.delete({
         where: { id },
-        include: {train: true}
+        include: { train: true }
       })
 
       return {

@@ -3,7 +3,7 @@ import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { jwtDecode } from 'jwt-decode'
-import { MethodTransactionDto } from './dto/pay-transaction.dto';
+import { PayTransactionDto } from './dto/pay-transaction.dto';
 
 @Injectable()
 export class TransactionService {
@@ -225,9 +225,9 @@ export class TransactionService {
     }
   }
 
-  async pay(id: number, methodTransactionDto: MethodTransactionDto) {
+  async pay(id: number, payTransactionDto: PayTransactionDto) {
     try {
-      const { method } = methodTransactionDto
+      const { method } = payTransactionDto
       const transaction = await this.prisma.transaction.findFirst({
         where: { id },
         include: {
@@ -238,6 +238,12 @@ export class TransactionService {
       if (!transaction) return {
         status: 'failed',
         message: `Transaction with the ID ${id} is not found`,
+        data: null
+      }
+
+      if (method === "UNPAID") return {
+        status: 'failed',
+        message: 'Payment method must be included',
         data: null
       }
 

@@ -4,6 +4,7 @@ import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RoleGuard, Roles } from '../helper/roles-guard';
+import { PayTransactionDto } from './dto/pay-transaction.dto';
 
 @Controller('transaction')
 export class TransactionController {
@@ -22,14 +23,27 @@ export class TransactionController {
     return this.transactionService.findAll();
   }
 
-  @Get('me')
-  findMe(@Body() token: string) {
-    return this.transactionService.findMe(token)
-  }
+  // @Get('me')
+  // findMe(@Body() token: string) {
+  //   return this.transactionService.findMe(token)
+  // }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.transactionService.findOne(+id);
+  }
+
+  @UsePipes(new ValidationPipe)
+  @Patch('pay/:id')
+  pay(@Param('id') id: string, @Body() payTransactionDto: PayTransactionDto) {
+    return this.transactionService.pay(+id, payTransactionDto)
+  }
+
+  @UseGuards(AuthGuard('jwt'), RoleGuard)
+  @Roles('ADMIN')
+  @Patch('cancel/:id')
+  cancel(@Param('id') id: string) {
+    return this.transactionService.cancel(+id)
   }
 
   @UseGuards(AuthGuard('jwt'), RoleGuard)
@@ -46,4 +60,6 @@ export class TransactionController {
   remove(@Param('id') id: string) {
     return this.transactionService.remove(+id);
   }
+
+  
 }

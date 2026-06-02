@@ -270,6 +270,21 @@ export class TransactionService {
         data: transaction
       }
 
+      const carriage = await this.prisma.carriage.findFirst({
+        where: {id: Number(transaction.ticket?.carriageId)}
+      })
+
+      if (carriage?.capacity == 0) return {
+        status: 'failed',
+        message: `Carriage with the ID ${id} is full`,
+        data: null
+      }
+
+      const fillCarriage = await this.prisma.carriage.update({
+        where: {id: carriage?.id},
+        data: {capacity: Number(carriage?.capacity) - transaction.ticketAmount}
+      })
+
       const payTansaction = await this.prisma.transaction.update({
         where: { id },
         data: {

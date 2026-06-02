@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
@@ -9,6 +9,7 @@ import { RoleGuard, Roles } from '../helper/roles-guard';
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) { }
 
+  @UsePipes(new ValidationPipe)
   @Post()
   create(@Body() createTransactionDto: CreateTransactionDto) {
     return this.transactionService.create(createTransactionDto);
@@ -21,6 +22,11 @@ export class TransactionController {
     return this.transactionService.findAll();
   }
 
+  @Get('me')
+  findMe(@Body() token: string) {
+    return this.transactionService.findMe(token)
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.transactionService.findOne(+id);
@@ -28,6 +34,7 @@ export class TransactionController {
 
   @UseGuards(AuthGuard('jwt'), RoleGuard)
   @Roles('ADMIN')
+  @UsePipes(new ValidationPipe)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTransactionDto: UpdateTransactionDto) {
     return this.transactionService.update(+id, updateTransactionDto);

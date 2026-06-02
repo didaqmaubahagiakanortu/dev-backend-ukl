@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { jwtDecode } from 'jwt-decode'
+import { MethodTransactionDto } from './dto/pay-transaction.dto';
 
 @Injectable()
 export class TransactionService {
@@ -9,7 +11,7 @@ export class TransactionService {
 
   async create(createTransactionDto: CreateTransactionDto) {
     try {
-      const { method, status, ticketAmount, passengerId, ticketId } = createTransactionDto
+      const { ticketAmount, passengerId, ticketId } = createTransactionDto
 
       const passenger = await this.prisma.passenger.findFirst({
         where: { id: passengerId }
@@ -31,8 +33,6 @@ export class TransactionService {
 
       const createTransaction = await this.prisma.transaction.create({
         data: {
-          method,
-          status,
           ticketAmount,
           passenger: {
             connect: { id: passengerId }
@@ -84,6 +84,21 @@ export class TransactionService {
     }
   }
 
+  // async findMe(token: string) {
+  //   try {
+  //     const decoded = await jwtDecode(token, {header: true})
+
+  //     return decoded
+
+  //   } catch (error) {
+  //     return {
+  //       status: 'failed',
+  //       message: `Error when returning transaction: ${error}`,
+  //       data: null
+  //     }
+  //   }
+  // }
+
   async findOne(id: number) {
     try {
       const getTransactionByID = await this.prisma.transaction.findFirst({
@@ -116,7 +131,7 @@ export class TransactionService {
 
   async update(id: number, updateTransactionDto: UpdateTransactionDto) {
     try {
-      const { method, status, ticketAmount, passengerId, ticketId } = updateTransactionDto
+      const { ticketAmount, passengerId, ticketId } = updateTransactionDto
 
       const transaction = await this.prisma.transaction.findFirst({
         where: { id }
@@ -148,8 +163,6 @@ export class TransactionService {
       const updateTransaction = await this.prisma.transaction.update({
         where: { id },
         data: {
-          method: method ?? transaction.method,
-          status: status ?? transaction.status,
           ticketAmount: ticketAmount ?? transaction.ticketAmount,
           passenger: passengerId ?
             { connect: { id: passengerId } } :
@@ -191,7 +204,7 @@ export class TransactionService {
       }
 
       const deleteTransaction = await this.prisma.transaction.delete({
-        where: {id},
+        where: { id },
         include: {
           passenger: true,
           ticket: true
@@ -207,6 +220,110 @@ export class TransactionService {
       return {
         status: 'failed',
         message: `Error when deleting transaction with the ID ${id}: ${error}`,
+        data: null
+      }
+    }
+  }
+
+  async pay(id: number, methodTransactionDto: MethodTransactionDto) {
+    try {
+      const { method } = methodTransactionDto
+      const transaction = await this.prisma.transaction.findFirst({
+        where: { id },
+        include: {
+          passenger: true,
+          ticket: true
+        }
+      })
+      if (!transaction) return {
+        status: 'failed',
+        message: `Transaction with the ID ${id} is not found`,
+        data: null
+      }
+
+      if (transaction.status === "PAID") return {
+        status: 'failed',
+        message: `Transaction with the ID ${id} has already been paid`,
+        data: transaction
+      }
+      else if (transaction.status === "CANCELLED") return {
+        status: 'failed',
+        message: `Transaction with the ID ${id} has already been cancelled`,
+        data: transaction
+      }
+
+      const payTansaction = await this.prisma.transaction.update({
+        where: { id },
+        data: {
+          method,
+          status: "PAID"
+        },
+        include: {
+          passenger: true,
+          ticket: true
+        }
+      })
+
+      return {
+        status: 'success',
+        message: `Ticket with the ID ${id} successfully paid`,
+        data: payTansaction
+      }
+    } catch (error) {
+      return {
+        status: 'failed',
+        message: `Error when paying transaction with the ID ${id}: ${error}`,
+        data: null
+      }
+    }
+  }
+
+  async cancel(id: number) {
+    try {
+      const transaction = await this.prisma.transaction.findFirst({
+        where: { id },
+        include: {
+          passenger: true,
+          ticket: true
+        }
+      })
+      if (!transaction) return {
+        status: 'failed',
+        message: `Transaction with the ID ${id} is not found`,
+        data: null
+      }
+
+      if (transaction.status === "PAID") return {
+        status: 'failed',
+        message: `Transaction with the ID ${id} has already been paid`,
+        data: transaction
+      }
+      else if (transaction.status === "CANCELLED") return {
+        status: 'failed',
+        message: `Transaction with the ID ${id} has already been cancelled`,
+        data: transaction
+      }
+
+      const cancelTransaction = await this.prisma.transaction.update({
+        where: { id },
+        data: {
+          status: "CANCELLED"
+        },
+        include: {
+          passenger: true,
+          ticket: true
+        }
+      })
+
+      return {
+        status: 'success',
+        message: `Transaction with the ID ${id} successfully cancelled`,
+        data: cancelTransaction
+      }
+    } catch (error) {
+      return {
+        status: 'failed',
+        message: `Error when cancelling transaction with the ID ${id}: ${error}`,
         data: null
       }
     }

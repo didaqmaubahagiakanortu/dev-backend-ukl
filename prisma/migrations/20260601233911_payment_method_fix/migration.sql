@@ -1,0 +1,7 @@
+-- AlterEnum
+BEGIN;
+ALTER TYPE "Method" ADD VALUE 'UNPAID';
+COMMIT;
+
+-- AlterTable
+ALTER TABLE "Transaction" ALTER COLUMN "method" SET DEFAULT 'UNPAID';

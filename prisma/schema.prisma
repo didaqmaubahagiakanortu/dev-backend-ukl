@@ -86,8 +86,8 @@ model Ticket {
 
 model Transaction {
   id           Int        @id @default(autoincrement())
-  method       Method
-  status       Status
+  method       Method     @default(UNPAID)
+  status       Status     @default(PENDING)
   ticketAmount Int
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
@@ -109,6 +109,7 @@ enum Class {
 }
 
 enum Method {
+  UNPAID
   CASH
   CASHLESS
 }

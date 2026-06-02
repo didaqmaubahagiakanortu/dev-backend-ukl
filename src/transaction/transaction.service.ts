@@ -280,9 +280,11 @@ export class TransactionService {
         data: null
       }
 
+      const newCapacityValue = Number(carriage?.capacity) - transaction.ticketAmount
+
       const fillCarriage = await this.prisma.carriage.update({
         where: {id: carriage?.id},
-        data: {capacity: Number(carriage?.capacity) - transaction.ticketAmount}
+        data: {capacity: newCapacityValue}
       })
 
       const payTansaction = await this.prisma.transaction.update({

@@ -12,9 +12,10 @@ import { TrainModule } from './train/train.module';
 import { CarriageModule } from './carriage/carriage.module';
 import { TicketModule } from './ticket/ticket.module';
 import { TransactionModule } from './transaction/transaction.module';
+import { SeatModule } from './seat/seat.module';
 
 @Module({
-  imports: [UserModule, PrismaModule, AuthModule, PassengerModule, AdminModule, TrainModule, CarriageModule, TicketModule, TransactionModule],
+  imports: [UserModule, PrismaModule, AuthModule, PassengerModule, AdminModule, TrainModule, CarriageModule, TicketModule, TransactionModule, SeatModule],
   controllers: [AppController],
   providers: [AppService, PrismaService, BcryptService],
 })

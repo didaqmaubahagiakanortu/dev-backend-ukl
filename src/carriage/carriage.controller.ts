@@ -24,8 +24,6 @@ export class CarriageController {
     return this.carriageService.findAll();
   }
 
-  @UseGuards(AuthGuard('jwt'), RoleGuard)
-  @Roles('ADMIN')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.carriageService.findOne(+id);

@@ -85,7 +85,7 @@ export class CarriageService {
       return {
         status: 'success',
         message: `Carriage with the ID ${id} succesfully returned`,
-        dat: getCarriageByID
+        data: getCarriageByID
       }
     } catch (error) {
       return {

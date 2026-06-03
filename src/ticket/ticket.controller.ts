@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UsePipes, ValidationPipe, UseGuards, Query } from '@nestjs/common';
 import { TicketService } from './ticket.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RoleGuard, Roles } from '../helper/roles-guard';
+import { FindTicketDto } from './dto/find-ticket.dto';
 
 @Controller('ticket')
 export class TicketController {
@@ -18,8 +19,8 @@ export class TicketController {
   }
 
   @Get()
-  findAll() {
-    return this.ticketService.findAll();
+  findAll(@Query() findTicketDto: FindTicketDto) {
+    return this.ticketService.findAll(findTicketDto);
   }
 
   @Get(':id')

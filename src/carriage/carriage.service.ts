@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateCarriageDto } from './dto/create-carriage.dto';
 import { UpdateCarriageDto } from './dto/update-carriage.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { FindCarriageDto } from './dto/find-carriage.dto';
 
 @Injectable()
 export class CarriageService {
@@ -44,19 +45,40 @@ export class CarriageService {
     }
   }
 
-  async findAll() {
+  async findAll(findCarriageDto: FindCarriageDto) {
     try {
+      const { page = 1, limit = 10, classification, trainId } = findCarriageDto
+      const skip = (page - 1) * limit
+
+      const where: any = {}
+      if (classification) {
+        where.class = classification.toUpperCase()
+      }
+      if (trainId) {
+        where.trainId = Number(trainId)
+      }
+
       const getAllCarriages = await this.prisma.carriage.findMany({
+        where,
+        skip,
+        take: Number(limit),
         include: {
           train: true,
           seats: true
         }
       })
+      const total = await this.prisma.carriage.count({ where })
 
       return {
         status: 'success',
         message: 'Carriages succesfully returned',
-        data: getAllCarriages
+        data: getAllCarriages,
+        meta: {
+          total,
+          page: Number(page),
+          limit: Number(limit),
+          totalPages: Math.ceil(total / limit)
+        }
       }
     } catch (error) {
       return {

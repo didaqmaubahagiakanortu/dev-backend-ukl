@@ -3,6 +3,7 @@ import { CreateTrainDto } from './dto/create-train.dto';
 import { UpdateTrainDto } from './dto/update-train.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { connect } from 'http2';
+import { FindTrainDto } from './dto/find-train.dto';
 
 @Injectable()
 export class TrainService {
@@ -48,16 +49,34 @@ export class TrainService {
 
   }
 
-  async findAll() {
+  async findAll(findTrainDto: FindTrainDto) {
     try {
+      const { search, page = 1, limit = 10 } = findTrainDto
+      const skip = (page - 1) * limit
+
+      const where: any = {}
+      if (search) {
+        where.name = { contains: search }
+      }
+
       const getAllTrains = await this.prisma.train.findMany({
+        where,
+        skip,
+        take: Number(limit),
         include: { carriages: true }
       })
+      const total = await this.prisma.train.count({ where })
 
       return {
         status: 'success',
         message: 'Trains successfully returned',
-        data: getAllTrains
+        data: getAllTrains,
+        meta: {
+          total,
+          page: Number(page),
+          limit: Number(limit),
+          totalPages: Math.ceil(total / limit)
+        }
       }
     } catch (error) {
       return {
@@ -123,7 +142,7 @@ export class TrainService {
           carriages: carriageId ?
             { connect: { id: carriageId } } : {}
         },
-        include: {carriages: true}
+        include: { carriages: true }
       })
 
       return {
@@ -143,7 +162,7 @@ export class TrainService {
   async remove(id: number) {
     try {
       const train = await this.prisma.train.findFirst({
-        where: {id}
+        where: { id }
       })
       if (!train) return {
         status: 'failed',
@@ -152,8 +171,8 @@ export class TrainService {
       }
 
       const deleteTrain = await this.prisma.train.delete({
-        where: {id},
-        include: {carriages: true}
+        where: { id },
+        include: { carriages: true }
       })
 
       return {

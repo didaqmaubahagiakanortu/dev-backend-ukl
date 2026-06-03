@@ -3,6 +3,7 @@ import { CreatePassengerDto } from './dto/create-passenger.dto';
 import { UpdatePassengerDto } from './dto/update-passenger.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { BcryptService } from '../bcrypt/bcrypt.service';
+import { FindPassengerDto } from './dto/find-passenger.dto';
 
 @Injectable()
 export class PassengerService {
@@ -59,16 +60,34 @@ export class PassengerService {
 
   }
 
-  async findAll() {
+  async findAll(findPassengerDto: FindPassengerDto) {
     try {
+      const { search, page = 1, limit = 10 } = findPassengerDto
+      const skip = (page - 1) * limit
+
+      const where: any = {}
+      if (search) {
+        where.name = { contains: search }
+      }
+
       const getAllPassengers = await this.prisma.passenger.findMany({
+        where,
+        skip,
+        take: Number(limit),
         include: { user: true }
       })
+      const total = await this.prisma.passenger.count({ where })
 
       return {
         status: 'success',
         message: 'Passengers succesfully returned',
-        data: getAllPassengers
+        data: getAllPassengers,
+        meta: {
+          total,
+          page: Number(page),
+          limit: Number(limit),
+          totalPages: Math.ceil(total / limit)
+        }
       }
     } catch (error) {
       return {

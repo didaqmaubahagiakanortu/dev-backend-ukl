@@ -4,6 +4,7 @@ import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { jwtDecode } from 'jwt-decode'
 import { PayTransactionDto } from './dto/pay-transaction.dto';
+import { FindTransactionDto } from './dto/find-transaction.dto';
 
 @Injectable()
 export class TransactionService {
@@ -61,24 +62,51 @@ export class TransactionService {
     }
   }
 
-  async findAll() {
+  async findAll(findTransactionDto: FindTransactionDto) {
     try {
+      const { page = 1, limit = 10, passengerId, method, status } = findTransactionDto
+      const skip = (page - 1) * limit
+
+      const where: any = {}
+
+      if (passengerId) {
+        where.passengerId = Number(passengerId)
+      }
+
+      if (method) {
+        where.method = method.toUpperCase()
+      }
+
+      if (status) {
+        where.status = status.toUpperCase()
+      }
+
       const getAllTransactions = await this.prisma.transaction.findMany({
+        where,
+        skip,
+        take: Number(limit),
         include: {
           passenger: true,
           ticket: true
         }
       })
+      const total = await this.prisma.transaction.count({ where })
 
       return {
         status: 'success',
         message: 'Transactions successfully returned',
-        data: getAllTransactions
+        data: getAllTransactions,
+        meta: {
+          total,
+          page: Number(page),
+          limit: Number(limit),
+          totalPages: Math.ceil(total / limit)
+        }
       }
     } catch (error) {
       return {
         status: 'failed',
-        message: `Error when returning transactions`,
+        message: `Error when returning transactions: ${error}`,
         data: null
       }
     }

@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe, Req, Query } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RoleGuard, Roles } from '../helper/roles-guard';
 import { PayTransactionDto } from './dto/pay-transaction.dto';
+import { FindTransactionDto } from './dto/find-transaction.dto';
 
 @Controller('transaction')
 export class TransactionController {
@@ -19,8 +20,8 @@ export class TransactionController {
   @UseGuards(AuthGuard('jwt'), RoleGuard)
   @Roles('ADMIN')
   @Get()
-  findAll() {
-    return this.transactionService.findAll();
+  findAll(@Query() findTransactionDto: FindTransactionDto) {
+    return this.transactionService.findAll(findTransactionDto);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -63,5 +64,5 @@ export class TransactionController {
     return this.transactionService.remove(+id);
   }
 
-  
+
 }

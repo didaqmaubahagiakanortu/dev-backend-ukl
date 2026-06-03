@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe, Query } from '@nestjs/common';
 import { CarriageService } from './carriage.service';
 import { CreateCarriageDto } from './dto/create-carriage.dto';
 import { UpdateCarriageDto } from './dto/update-carriage.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RoleGuard, Roles } from '../helper/roles-guard';
+import { FindCarriageDto } from './dto/find-carriage.dto';
 
 @Controller('carriage')
 export class CarriageController {
@@ -20,8 +21,8 @@ export class CarriageController {
   @UseGuards(AuthGuard('jwt'), RoleGuard)
   @Roles('ADMIN')
   @Get()
-  findAll() {
-    return this.carriageService.findAll();
+  findAll(@Query() findCarriageDto: FindCarriageDto) {
+    return this.carriageService.findAll(findCarriageDto);
   }
 
   @Get(':id')

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { FindTicketDto } from './dto/find-ticket.dto';
 
 @Injectable()
 export class TicketService {
@@ -64,20 +65,41 @@ export class TicketService {
     }
   }
 
-  async findAll() {
+  async findAll(findTicketDto: FindTicketDto) {
     try {
+      const { page = 1, limit = 10, origin, destination } = findTicketDto
+      const skip = (page - 1) * limit
+
+      const where: any = {}
+      if (origin) {
+        where.origin = origin
+      }
+      if (destination) {
+        where.destination = destination
+      }
+
       const getAllTickets = await this.prisma.ticket.findMany({
+        where,
+        skip,
+        take: Number(limit),
         include: {
           train: true,
           carriage: true,
           transactions: true
         }
       })
+      const total = await this.prisma.ticket.count({ where })
 
       return {
         status: 'success',
         message: 'Tickets successfully returned',
-        data: getAllTickets
+        data: getAllTickets,
+        meta: {
+          total,
+          page: Number(page),
+          limit: Number(limit),
+          totalPages: Math.ceil(total / limit)
+        }
       }
     } catch (error) {
       return {

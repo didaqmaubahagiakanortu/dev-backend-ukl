@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UsePipes, ValidationPipe, UseGuards, Query } from '@nestjs/common';
 import { TrainService } from './train.service';
 import { CreateTrainDto } from './dto/create-train.dto';
 import { UpdateTrainDto } from './dto/update-train.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RoleGuard, Roles } from '../helper/roles-guard';
+import { FindTrainDto } from './dto/find-train.dto';
 
 @Controller('train')
 export class TrainController {
@@ -20,8 +21,8 @@ export class TrainController {
   @UseGuards(AuthGuard('jwt'), RoleGuard)
   @Roles('ADMIN')
   @Get()
-  findAll() {
-    return this.trainService.findAll();
+  findAll(@Query() findTrainDto: FindTrainDto) {
+    return this.trainService.findAll(findTrainDto);
   }
 
   @UseGuards(AuthGuard('jwt'), RoleGuard)

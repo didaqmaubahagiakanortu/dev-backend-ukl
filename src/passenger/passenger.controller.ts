@@ -1,13 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UsePipes, ValidationPipe, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UsePipes, ValidationPipe, UseGuards, Req, Query } from '@nestjs/common';
 import { PassengerService } from './passenger.service';
 import { CreatePassengerDto } from './dto/create-passenger.dto';
 import { UpdatePassengerDto } from './dto/update-passenger.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { RoleGuard, Roles } from '../helper/roles-guard';
+import { FindPassengerDto } from './dto/find-passenger.dto';
 
 @Controller('passenger')
 export class PassengerController {
-  constructor(private readonly passengerService: PassengerService) {}
+  constructor(private readonly passengerService: PassengerService) { }
 
   @UsePipes(new ValidationPipe)
   @Post()
@@ -18,8 +19,8 @@ export class PassengerController {
   @UseGuards(AuthGuard('jwt'), RoleGuard)
   @Roles('ADMIN')
   @Get()
-  findAll() {
-    return this.passengerService.findAll();
+  findAll(@Query() findPassengerDto: FindPassengerDto) {
+    return this.passengerService.findAll(findPassengerDto);
   }
 
   @UseGuards(AuthGuard('jwt'), RoleGuard)
